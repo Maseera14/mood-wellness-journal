@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
 import './app.css';
-const API_URL = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5002/api');
 
 const moodOptions = [
   { value: 'amazing', emoji: '🌟', label: 'Amazing' },
@@ -98,7 +98,9 @@ function App() {
       const entryData = {
         ...formData,
         gratitude: formData.gratitude.filter(g => g.trim() !== ''),
-        date: new Date()
+        date: new Date(),
+        sleepHours: formData.sleepHours === '' ? undefined : Number(formData.sleepHours),
+        waterIntake: formData.waterIntake === '' ? undefined : Number(formData.waterIntake)
       };
       
       await axios.post(`${API_URL}/entries`, entryData);
