@@ -41,9 +41,15 @@ function App() {
     try {
       setLoading(true);
       const response = await axios.get(`${API_URL}/entries`);
-      setEntries(response.data);
+      if (response && Array.isArray(response.data)) {
+        setEntries(response.data);
+      } else {
+        console.error('Expected array of entries, got:', response?.data);
+        setEntries([]);
+      }
     } catch (error) {
       console.error('Error fetching entries:', error);
+      setEntries([]);
     } finally {
       setLoading(false);
     }
@@ -57,11 +63,12 @@ function App() {
       ]);
       
       setStats({
-        moods: moodResponse.data,
-        wellness: wellnessResponse.data
+        moods: (moodResponse && Array.isArray(moodResponse.data)) ? moodResponse.data : [],
+        wellness: (wellnessResponse && wellnessResponse.data && typeof wellnessResponse.data === 'object') ? wellnessResponse.data : {}
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
+      setStats({});
     }
   };
 
@@ -159,7 +166,7 @@ function App() {
         {/* Stats Dashboard */}
         <div className="stats-grid">
           <div className="stat-card">
-            <div className="stat-value">{entries.length}</div>
+            <div className="stat-value">{Array.isArray(entries) ? entries.length : 0}</div>
             <div className="stat-label">Total Entries</div>
           </div>
           <div className="stat-card">
@@ -358,7 +365,7 @@ function App() {
                 <div className="loading">
                   <div className="spinner"></div>
                 </div>
-              ) : entries.length === 0 ? (
+              ) : (!Array.isArray(entries) || entries.length === 0) ? (
                 <div className="empty-state">
                   <div className="empty-state-icon">📝</div>
                   <div className="empty-state-text">
@@ -367,7 +374,7 @@ function App() {
                 </div>
               ) : (
                 <div className="entries-grid">
-                  {entries.map((entry) => (
+                  {Array.isArray(entries) && entries.map((entry) => (
                     <div key={entry._id} className="entry-card">
                       <div className="entry-header">
                         <div className="entry-mood">
@@ -389,7 +396,7 @@ function App() {
                       <div className="entry-title">{entry.title}</div>
                       <div className="entry-content">{entry.content}</div>
                       
-                      {entry.gratitude && entry.gratitude.length > 0 && (
+                      {Array.isArray(entry.gratitude) && entry.gratitude.length > 0 && (
                         <div style={{ marginTop: '15px' }}>
                           <strong style={{ color: 'var(--primary-pink)' }}>💖 Grateful for:</strong>
                           <ul style={{ marginLeft: '20px', marginTop: '5px' }}>
